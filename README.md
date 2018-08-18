@@ -1,5 +1,8 @@
-# log-sensor-express (in progress)
-Logs sensor data (DHT11) in local data base (sqlite), visualize in browser (express and chart.js) and backup online in firebase.  
+# log-sensor-express
+Using node.js this code logs sensor data (DHT11) in local data base (sqlite) and let visualize in browser (express, chart.js and sockets.io).  
+
+Here we don´t backup online in Firebase. This feature can be found implemented here: https://github.com/ricardoantonello/log-sensor-express.git  
+
 Main reference (e-Book): Full Stack Web Development with Raspberry Pi 3 (Packt).  
 My site: https://cv.antonello.com.br  
 
