@@ -66,18 +66,6 @@ const pushData =(arr, value, maxLen)=>{
 const humidityDisplay = document.getElementById('humidity-display')
 const temperatureDisplay = document.getElementById('temperature-display')
 
-const fetchTemperature =()=>{
-    fetch('/temperature').then(results =>{
-        return results.json()}).then(data =>{
-            const now = new Date()
-            const timeNow = now.getHours()+':'+ now.getMinutes()+':'+ now.getSeconds()
-            pushData(temperatureChartConfig.data.labels, timeNow, 10)
-            pushData(temperatureChartConfig.data.datasets[0].data, data.value,10)
-            temperatureChart.update()
-            temperatureDisplay.innerHTML ='<strong>'+ data.value +'</strong>'
-        })
-}
-
 const fetchTemperatureHistory=()=>{
     fetch('/temperature/history').then(results =>{
         return results.json()}).then(data =>{
@@ -95,18 +83,6 @@ const fetchTemperatureHistory=()=>{
 }
 
 fetchTemperatureHistory()
-
-const fetchHumidity =()=>{
-    fetch('/humidity').then(results =>{
-        return results.json()}).then(data =>{
-            const now = new Date()
-            const timeNow = now.getHours()+':'+ now.getMinutes()+':'+ now.getSeconds()
-            pushData(humidityChartConfig.data.labels, timeNow, 10)
-            pushData(humidityChartConfig.data.datasets[0].data, data.value,10)
-            humidityChart.update()
-            humidityDisplay.innerHTML ='<strong>'+ data.value +'</strong>'
-        })
-}
 
 const fetchHumidityHistory =()=>{
     fetch('/humidity/history').then(results =>{
@@ -176,18 +152,56 @@ const fetchHumidityRange =()=>{
        )}
 
 
-if(!getParameterByName('start') && !getParameterByName('end')){
-    // The fetchTemperature and fetchHumidity calls are now moved here and are called only when the "start" and "end" parametes are not present in the query
-    // In this case, we will be showing the live reading implementation
-    setInterval(()=>{
-        fetchTemperature()
-        fetchHumidity()
-    },2000)
+/**  *** SOCKET ***
+ * First, define a function that will initialize the socket connection and add listeners
+ * to the required events
+ */
+const addSocketListeners =()=>{
+    
+    /** The "io" constructor is available to us after including the socket.io library script in the     "index.html" file
+     *  Initializing the socket connection is as easy as the statement below
+     */
+    const socket = io()
+    
+    /** An event listener is attached to the "new-temperature" event
+    * The handler is similar to the handler that was attached to the GET /temperature API, so
+    * in essence, we are  replacing the API call with the socket event notification
+    */
+    socket.on('new-temperature', data =>{
+        const now = new Date()
+        const timeNow = now.getHours()+':'+ now.getMinutes()+':'+ now.getSeconds()
+        pushData(temperatureChartConfig.data.labels, timeNow, 10)
+        pushData(temperatureChartConfig.data.datasets[0].data, data.value, 10)
+        temperatureChart.update()
+        temperatureDisplay.innerHTML ='<strong>'+ data.value +'</strong>'
+    })
+    
+    // Similarly, we add the handler for the "new-humidity" event      
+    socket.on('new-humidity', data =>{
+        const now = new Date()
+        const timeNow = now.getHours()+':'+ now.getMinutes()+':'+now.getSeconds()
+        pushData(humidityChartConfig.data.labels, timeNow, 10)
+        pushData(humidityChartConfig.data.datasets[0].data, data.value, 10)
+        humidityChart.update()
+        humidityDisplay.innerHTML ='<strong>'+ data.value +'</strong>'
+    })
+}
+    
+if(!getParameterByName('start')&&!getParameterByName('end')){
+        
+    /* Finally, the fetchHumidity and fetchTemperature functions, that used to call
+     * the APIs at regular intervals, are removed.
+     * In their place, the addSocketListeners function is called (and only needs to be
+     * called once this time)
+     */
+    addSocketListeners()
+    // setInterval(() => {
+    //    fetchTemperature()
+    //    fetchHumidity()
+    // }, 2000)
     fetchHumidityHistory()
     fetchTemperatureHistory()
-}else{
-    // If we do have these parameters, we will only be showing the range of readings requested by calling the  
-    // functions we defined in this section
+} else {
     fetchHumidityRange()
     fetchTemperatureRange()
 }

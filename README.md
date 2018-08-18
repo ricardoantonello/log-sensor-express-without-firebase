@@ -127,3 +127,6 @@ SELECT max(value) FROM temperature;
 SELECT max(value) FROM temperature WHERE createdAt < "2017-06-18 12:26:10";  
 SELECT * FROM temperature WHERE value > (SELECT avg(value) FROM temperature);  
 SELECT value, (SELECT avg(value) FROM temperature)-value as deviation, createdAt FROM temperature;
+
+## Instaling Socket.io
+npm install --save socket.io
